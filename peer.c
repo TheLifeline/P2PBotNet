@@ -30,7 +30,8 @@ int registerPeer(int serverSock, int listeningPort) {
     sendMessage(serverSock, encodedStr);
     free(encodedStr);
     char *receivedMessage = receiveMessage(serverSock, buffer);
-    printf("[CLIENT]server response is:%s\n", receivedMessage);
+    Message response = decodeMessageServer(receivedMessage);
+    printf("[CLIENT]server response is:%s\n", response.file);
     free(receivedMessage);
     return retVal;
 }
@@ -43,14 +44,15 @@ Message decodeMessageServer(char *encodedStr) {
     a.state = atoi(strtok(encodedStr, DELIM));
     a.action = atoi(strtok(NULL, DELIM));
     a.arguments = strtok(NULL, DELIM);
+    a.file =strtok(NULL, DELIM);
     return a;
 }
 // this is to encode the message that is to be passed to the server
 char* encodeMessageServer(Message m) {
     char *output;
-    size_t sizeRequired = snprintf(NULL, 0, ENCODE_MESSAGE_FORMAT, m.state, m.action, m.arguments) + 1;
+    size_t sizeRequired = snprintf(NULL, 0, ENCODE_MESSAGE_FORMAT, m.state, m.action, m.arguments,m.file) + 1;
     output = malloc(sizeRequired * sizeof(char));
-    sprintf(output, ENCODE_MESSAGE_FORMAT, m.state, m.action, m.arguments);
+    sprintf(output, ENCODE_MESSAGE_FORMAT, m.state, m.action, m.arguments,m.file);
     return output;
 }
 // receiveMessage wrapper is written on-top of the recv command

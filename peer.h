@@ -17,6 +17,7 @@ typedef struct Message {
     int state;
     int action;
     char *arguments;
+    char *file;
 } Message;
 typedef struct
 {
