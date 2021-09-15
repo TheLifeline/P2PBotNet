@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "socket.h": "c",
+        "stdio.h": "c",
+        "string.h": "c",
+        "in.h": "c",
+        "*.tcc": "cpp"
+    }
+}

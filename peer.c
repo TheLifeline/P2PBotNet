@@ -10,49 +10,22 @@
 #include "peer.h"
 #include "global.h"
 
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-
-// get the list of state, fileNames, fileSize that Peer Wants to Publish
-// registeer the peer with the Server/Tracker along with the list of files that the peer wishes to publish
-int registerPeer(int serverSock, int listeningPort) {
-    char buffer[BUFFER_SIZE_NETWORK];
-    int retVal = 0;
-
-    char *args="RegisterPeer";
-
-    Message m;
-    m.state = 200;
-    m.action = 1;
-    m.arguments = malloc(strlen(args) + sizeof(int) + 1);
-    sprintf(m.arguments, "%d,%s",listeningPort, args);
-
-    char *encodedStr = encodeMessageServer(m);
-    sendMessage(serverSock, encodedStr);
-    free(encodedStr);
-    char *receivedMessage = receiveMessage(serverSock, buffer);
-    Message response = decodeMessageServer(receivedMessage);
-    printf("[CLIENT]server response is:%s\n", response.file);
-    free(receivedMessage);
-    return retVal;
-}
-
 // decode the message sent by Server and call the respective functions to get the desired functionality
 // in simple terms, decode the character Buffer passed by the server
-Message decodeMessageServer(char *encodedStr) {
+Message decodeMessage(char *encodedStr) {
     //todo!!!!!!!
     Message a;
     a.state = atoi(strtok(encodedStr, DELIM));
     a.action = atoi(strtok(NULL, DELIM));
-    a.arguments = strtok(NULL, DELIM);
-    a.file =strtok(NULL, DELIM);
+    a.command = strtok(NULL, DELIM);
     return a;
 }
 // this is to encode the message that is to be passed to the server
-char* encodeMessageServer(Message m) {
+char* encodeMessage(Message m) {
     char *output;
-    size_t sizeRequired = snprintf(NULL, 0, ENCODE_MESSAGE_FORMAT, m.state, m.action, m.arguments,m.file) + 1;
+    size_t sizeRequired = snprintf(NULL, 0, MESSAGE_FORMAT, m.state, m.action, m.command) + 1;
     output = malloc(sizeRequired * sizeof(char));
-    sprintf(output, ENCODE_MESSAGE_FORMAT, m.state, m.action, m.arguments,m.file);
+    sprintf(output, MESSAGE_FORMAT, m.state, m.action, m.command);
     return output;
 }
 // receiveMessage wrapper is written on-top of the recv command
@@ -124,48 +97,4 @@ void sendMessage(int new_sock, char *serverResponse) {
     if (strlen(newMessage) > 0)
         free(newMessage);
     return;
-}
-// 作为服务端的处理线程
-_Noreturn void *threadedListen(void *arg) {
-    char buffer[BUFFER_SIZE_NETWORK];
-
-    int fd = *((int *) arg);
-
-    struct sockaddr_in client;
-    int clientSock;
-    int sockaddrLen = sizeof(struct sockaddr_in);
-    //起监听
-    if (listen(fd, MAX_CLIENTS) == -1) {
-        perror("listening error");
-        exit(-1);
-    }
-    puts("[SERVER]Start Listen!!");
-
-    while (1) {
-        if ((clientSock = accept(fd, (struct sockaddr *) &client, &sockaddrLen)) == -1) {
-            perror("accepting error");
-            exit(-1);
-        }
-        puts("[SERVER]Get the Client.");
-
-        pthread_mutex_lock(&lock);
-        char *receivedMessage = receiveMessage(clientSock, buffer);
-        pthread_mutex_unlock(&lock);
-
-        if (receivedMessage != NULL) {
-            // serveChunk:
-            Message a = decodeMessageServer(receivedMessage);
-            printf("[SERVER]server get args is:%s\n",a.arguments);
-            free(receivedMessage);
-            //todo:处理发过来的字段
-            switch (a.action) {
-                case 1:
-                    a.arguments="SUCCESS";
-                    pthread_mutex_lock(&lock);
-                    sendMessage(clientSock,encodeMessageServer(a));
-                    pthread_mutex_unlock(&lock);
-                    break;
-            }
-        }
-    }
 }

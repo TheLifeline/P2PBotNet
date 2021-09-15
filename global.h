@@ -5,7 +5,7 @@
 #ifndef P2PBOTNET_GLOBAL_H
 #define P2PBOTNET_GLOBAL_H
 
-#define ENCODE_MESSAGE_FORMAT "%d-%d-%s-%s"
+#define MESSAGE_FORMAT "%d-%d-%s"
 #define DELIM "-"
 
 #endif //P2PBOTNET_GLOBAL_H

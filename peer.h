@@ -14,10 +14,9 @@
 #define MAX_CLIENTS 10
 
 typedef struct Message {
-    int state;
-    int action;
-    char *arguments;
-    char *file;
+    int state;//通讯状态，200为正常
+    int action;//指令等级，1-10为系统指令，>10为特权指令
+    char *command;//指令内容；
 } Message;
 typedef struct
 {
@@ -27,16 +26,13 @@ typedef struct
     uint32_t FailCount;
 } Peer;
 Peer peer_list[10];//维护一个peer_list
-char *encodeMessageServer(Message);
+char *encodeMessage(Message);
 
-Message decodeMessageServer(char *encodedStr);
+Message decodeMessage(char *);
 
 void sendMessage(int, char *);
 
 char *receiveMessage(int, char *);
 
-_Noreturn void *threadedListen(void *);
-
-int registerPeer(int serverSock, int listeningPort);
 
 #endif //P2PBOTNET_PEER_H
